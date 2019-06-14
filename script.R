@@ -12,32 +12,26 @@ library(caretEnsemble)
 library(doParallel)
 
 #Import AirBnB File
-
-listings = read.csv("C:/Users/joshl/Downloads/listings.csv", header = TRUE)
+raw_data = read.csv("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/visualisations/listings.csv", header = TRUE)
 
 # Get an initial feel for the dataset
-
-glimpse(listings)
-head(listings)
-str(listings)
+glimpse(raw_data)
+head(raw_data)
+str(raw_data)
 
 ### Based on what we saw, I'm going to make the following changes ###
 
-# The neighbourhood_group column is NA for all entries, so I'll just remove it
-
-listings$neighbourhood_group = NULL
+# The neighbourhood_group column is the borough, so we'll change the name to make that clear 
+colnames(raw_data)[names(raw_data) == "neighbourhood_group"] = "borough"
 
 # The reviews_per_month column has NAs when there hasn't been any reviews, we'll replace these with 0
-
-listings$reviews_per_month[is.na(listings$reviews_per_month)] = 0
-
-
+raw_data$reviews_per_month[is.na(raw_data$reviews_per_month)] = 0
 
 ### Let's make a new variable, the dataset without the factors and check out some correlations
-### And istributions
+### And distributions
 
 # Create a new variable listings_num_only 
-listings_num_only = subset(listings, select = -c(2, 4, 5, 8, 12))
-cor_listings_num_only = cor(listings_num_only)
-corrplot(cor_listings_num_only, method = "square", type = "lower")
-chart.Correlation(listings_num_only)
+num_only = subset(raw_data, select = -c(2, 4, 5, 6, 9, 13))
+cor_num_only = cor(num_only)
+corrplot(cor_num_only, method = "square", type = "lower")
+
