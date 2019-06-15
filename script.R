@@ -1,7 +1,7 @@
 # Import Libraries
-
 library(dplyr)
 library(ggplot2)
+library(ggmap)
 library(PerformanceAnalytics)
 library(ggthemes)
 library(corrplot)
@@ -10,11 +10,13 @@ library(psych)
 library(caret)
 library(caretEnsemble)
 library(doParallel)
+library(tmaptools)
+library(viridis)
 
-#Import AirBnB File ### raw_data = read.csv("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/visualisations/listings.csv", header = TRUE)
+# Import AirBnB file ### raw_data = read.csv("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/visualisations/listings.csv", header = TRUE)
 raw_data = read.csv(file="c:/Users/joshl/Desktop/rdata/nyc_airbnb_june1.csv", header = TRUE)
 
-# Get an initial feel for the dataset
+# View data
 glimpse(raw_data)
 head(raw_data)
 str(raw_data)
@@ -37,7 +39,14 @@ ggplot(data = raw_data) +
 data = subset(raw_data, price > 100 & price < 400 & borough == "Manhattan" & room_type == "Entire home/apt")
 
 # plot the rentals geoghraphically
-plot(data$latitude, data$longitude, col = data$neighbourhood)
+ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 12)) +
+  geom_point(data = data, aes(x = longitude, y =latitude, colour = factor(data$neighbourhood)),
+             alpha = .1, size = 1)
+
+# Density map
+ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 12)) +
+  stat_density2d(mapping = aes(x = longitude, y =latitude), alpha = .3, h = .02,
+                 geom = "polygon", data = data)
 
 # Let's take a closer look
 ggplot(data = data) +
@@ -52,3 +61,4 @@ corrplot(cor(num_data), method = "square")
 # Check VIF
 simple_lm <- lm(price ~ ., data = num_data)
 vif(simple_lm)
+
