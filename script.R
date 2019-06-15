@@ -48,20 +48,10 @@ ggplot(data = data) +
 ### Get a map of Manhattan for visualizations
 map <- ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 12))
 
-### Mean price in each neighbourhood
-neighbourhood.means <- with(data, tapply(data$price, data$neighbourhood, mean))
-neighbourhood.means <- neighbourhood.means[is.na(neighbourhood.means) == FALSE]
-neighbourhood.latitude <- with(data, tapply(data$latitude, data$neighbourhood, mean))
-neighbourhood.latitude <- neighbourhood.latitude[is.na(neighbourhood.latitude) == FALSE] 
-neighbourhood.longitude <- with(data, tapply(data$longitude, data$neighbourhood, mean))
-neighbourhood.longitude <- neighbourhood.longitude[is.na(neighbourhood.longitude) == FALSE]
-neighbourhood.data <- as.data.frame(cbind(neighbourhood.means, neighbourhood.longitude, neighbourhood.latitude))
-
-### Plot average price per neighbourhood
-map + geom_point(data = neighbourhood.data,
-                 aes(x = neighbourhood.longitude, y = neighbourhood.latitude),
-                 size = 5) +
-  scale_fill_gradient(low = "dark blue", high = "orange")
+### plot the data
+map + geom_point(data = data, aes(x = longitude, y =latitude, colour = factor(neighbourhood)),
+             alpha = 0.1) + guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+  theme(legend.title = element_text(colour="chocolate", size=16, face="bold"))
 
 ### Density map
 map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level.., 
