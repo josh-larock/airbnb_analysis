@@ -14,14 +14,14 @@ library(tmaptools)
 library(viridis)
 
 # Import AirBnB file ### raw_data = read.csv("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/visualisations/listings.csv", header = TRUE)
-raw_data = read.csv(file="c:/Users/joshl/Desktop/rdata/nyc_airbnb_june1.csv", header = TRUE)
+raw_data <- read.csv(file="c:/Users/joshl/Desktop/rdata/nyc_airbnb_june1.csv", header = TRUE)
 
 # View data
 glimpse(raw_data)
 head(raw_data)
 str(raw_data)
 
-# The neighbourhood_group column is the borough, so we'll change the name to make that clear 
+# Change neighbourhood_group column name to borough
 colnames(raw_data)[names(raw_data) == "neighbourhood_group"] = "borough"
 
 # The reviews_per_month column has NAs when there hasn't been any reviews, we'll replace these with 0
@@ -30,13 +30,13 @@ raw_data$reviews_per_month[is.na(raw_data$reviews_per_month)] = 0
 # Confirm there are any NAs left in the data
 anyNA(raw_data)
 
-# Let's make a new variable, the dataset without the factors and check out correlations & distributions
+# View distributions 
 ggplot(data = raw_data) +
   facet_grid(room_type ~ borough) +
   geom_histogram(mapping = aes(price), bins = 30)
 
-# I want to focus on Entire home/apt in Manhattan at affordable prices
-data = subset(raw_data, price > 100 & price < 400 & borough == "Manhattan" & room_type == "Entire home/apt")
+# Subset Entire home/apt in Manhattan that are between 100-400$ a night
+data <- subset(raw_data, price > 100 & price < 400 & borough == "Manhattan" & room_type == "Entire home/apt")
 
 # plot the rentals geoghraphically
 ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 12)) +
@@ -53,7 +53,7 @@ ggplot(data = data) +
   geom_histogram(mapping = aes(price), bins = 12)
 
 # Create a new data set with just numerical factors
-num_data = data[, c(-2, -4, -5, -6, -9, -13)]
+num_data <- data[, c(-2, -4, -5, -6, -9, -13)]
 
 # Check correlations (remove factors to do this)
 corrplot(cor(num_data), method = "square")
@@ -61,4 +61,3 @@ corrplot(cor(num_data), method = "square")
 # Check VIF
 simple_lm <- lm(price ~ ., data = num_data)
 vif(simple_lm)
-
