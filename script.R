@@ -36,6 +36,9 @@ ggplot(data = raw_data) +
 # I want to focus on Entire home/apt in Manhattan at affordable prices
 data = subset(raw_data, price > 100 & price < 400 & borough == "Manhattan" & room_type == "Entire home/apt")
 
+# plot the rentals geoghraphically
+plot(data$latitude, data$longitude, col = data$neighbourhood)
+
 # Let's take a closer look
 ggplot(data = data) +
   geom_histogram(mapping = aes(price), bins = 12)
