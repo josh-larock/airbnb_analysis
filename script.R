@@ -42,6 +42,8 @@ plot(data$latitude, data$longitude, col = data$neighbourhood)
 # Let's take a closer look
 ggplot(data = data) +
   geom_histogram(mapping = aes(price), bins = 12)
+
+# Create a new data set with just numerical factors
 num_data = data[, c(-2, -4, -5, -6, -9, -13)]
 
 # Check correlations (remove factors to do this)
