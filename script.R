@@ -45,8 +45,11 @@ ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoo
 
 # Density map
 ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 12)) +
-  stat_density2d(mapping = aes(x = longitude, y =latitude), alpha = .3, h = .02,
-                 geom = "polygon", data = data)
+  stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level.., 
+                               alpha = ..level..), 
+                 size = 0.01, bins = 30,geom = "polygon", data = data) + 
+  scale_fill_gradient(low = "dark blue", high = "orange") +
+  scale_alpha(range = c(0.05, 0.3), guide = FALSE)
 
 # Let's take a closer look
 ggplot(data = data) +
