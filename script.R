@@ -65,3 +65,21 @@ map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level..,
                      size = 0.01, bins = 30,geom = "polygon", data = data) + 
   scale_fill_gradient(low = "dark blue", high = "orange") +
   scale_alpha(range = c(0.05, 0.3), guide = FALSE)
+
+# Analyse distrubutions and correlations 
+
+### Create a new data set with just numerical factors
+num.data <- data[, c(-2, -4, -5, -6, -9, -13)]
+
+### Check correlations
+corrplot(cor(num.data), method = "square")
+
+### Check VIF
+simple.lm <- lm(price ~ ., data = num.data)
+vif(simple.lm)
+
+# Feature Engineering
+
+# Predictive Modelling
+
+###
