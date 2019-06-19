@@ -15,7 +15,7 @@ library(viridis)
 library(data.table)
 
 ### Import AirBnB file
-#raw.data <- fread("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/data/listings.csv.gz", header = TRUE)
+raw.data <- fread("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/data/listings.csv.gz", header = TRUE)
 
 ### Check Dimension of Data
 dim(raw.data)
@@ -33,7 +33,7 @@ na.count[na.count > 0]
 blank.count <- sapply(raw.data, function(y) sum(length(which(y == ""))))
 blank.count[blank.count > 0]
 
-### Remove columns with a ton of NAs
+### Remove useless and columns
 data <- subset(raw.data, select = c(host_is_superhost, neighbourhood_group_cleansed,
                                     neighbourhood_cleansed, latitude, longitude, property_type,
                                     room_type, accommodates, bathrooms, beds, bed_type, price,
@@ -51,6 +51,18 @@ data$price <- as.numeric(gsub("\\$|,", "", data$price))
 data$cleaning_fee <- as.numeric(gsub("\\$|,", "", data$cleaning_fee))
 data$extra_people <- as.numeric(gsub("\\$|,", "", data$extra_people))
 
+# Convert from chr to factor
+data$neighbourhood_cleansed <- as.factor(data$neighbourhood_cleansed)
+data$neighbourhood_group_cleansed <- as.factor(data$neighbourhood_group_cleansed)
+data$property_type <- as.factor(data$property_type)
+data$room_type <- as.factor(data$room_type)
+data$bed_type <- as.factor(data$bed_type)
+
+# Convert from chr to logical
+data$host_is_superhost[data$host_is_superhost == "t"] <- TRUE
+data$host_is_superhost[data$host_is_superhost == "f"] <- FALSE
+data$host_is_superhost <- as.logical(data$host_is_superhost)
+
 ### Clear any entries with NAs left
 data <- data[complete.cases(data)]
 dim(data)
@@ -59,11 +71,6 @@ dim(data)
 
 ### Get a map of Manhattan for visualizations
 map <- ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("New York City")$bbox))), zoom = 13))
-
-### plot the data
-#map + geom_point(data = data, aes(x = longitude, y =latitude, colour = factor(neighbourhood)),
-#                 alpha = 0.1) + guides(colour = guide_legend(override.aes = list(alpha = 1))) +
-# theme(legend.title = element_text(colour="chocolate", size=16, face="bold"))
 
 ### Density map
 map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level.., 
@@ -75,14 +82,14 @@ map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level..,
 # Analyse distrubutions and correlations 
 
 ### Create a new data set with just numerical factors
-#num.data <- data[, c(-2, -4, -5, -6, -9, -13)]
+num.data <- data[, c(-1, -2, -3, -6, -7, -11)]
 
 ### Check correlations
-#corrplot(cor(num.data), method = "square")
+corrplot(cor(num.data), method = "square")
 
 ### Check VIF
-#simple.lm <- lm(price ~ ., data = num.data)
-#vif(simple.lm)
+simple.lm <- lm(price ~ ., data = num.data)
+vif(simple.lm)
 
 # Feature Engineering
 
