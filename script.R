@@ -14,13 +14,15 @@ library(tmaptools)
 library(viridis)
 library(data.table)
 
-### Import AirBnB file ### 
+### Import AirBnB file
 #raw.data <- fread("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/data/listings.csv.gz", header = TRUE)
-#raw.data <- read.csv(file="c:/Users/joshl/Desktop/rdata/nyc_airbnb_june1.csv", header = TRUE)
 
 ### Check Dimension of Data
 dim(raw.data)
 glimpse(raw.data)
+head(raw.data)
+str(raw.data)
+
 # Data Cleaning
 
 ### Check how many NAs are in each column
@@ -41,13 +43,17 @@ data <- subset(raw.data, select = c(host_is_superhost, neighbourhood_group_clean
                                     review_scores_communication, review_scores_location,
                                     review_scores_value, calculated_host_listings_count))
 
+### Convert empty strings in cleaning_fee to $0
+data$cleaning_fee[data$cleaning_fee == ""] <- "$0.00"
+
+### Convert price, cleaning_fee and extra_people from chr to numeric 
+data$price <- as.numeric(gsub("\\$|,", "", data$price))
+data$cleaning_fee <- as.numeric(gsub("\\$|,", "", data$cleaning_fee))
+data$extra_people <- as.numeric(gsub("\\$|,", "", data$extra_people))
+
 ### Clear any entries with NAs left
 data <- data[complete.cases(data)]
-
-blank.count <- sapply(data, function(y) sum(length(which(y == ""))))
-blank.count[blank.count > 0]
-### Find and remove columns that are not mostly full
-glimpse(data)
+dim(data)
 
 # Spatial Visualization
 
@@ -69,14 +75,14 @@ map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level..,
 # Analyse distrubutions and correlations 
 
 ### Create a new data set with just numerical factors
-num.data <- data[, c(-2, -4, -5, -6, -9, -13)]
+#num.data <- data[, c(-2, -4, -5, -6, -9, -13)]
 
 ### Check correlations
-corrplot(cor(num.data), method = "square")
+#corrplot(cor(num.data), method = "square")
 
 ### Check VIF
-simple.lm <- lm(price ~ ., data = num.data)
-vif(simple.lm)
+#simple.lm <- lm(price ~ ., data = num.data)
+#vif(simple.lm)
 
 # Feature Engineering
 
