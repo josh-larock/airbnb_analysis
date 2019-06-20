@@ -1,3 +1,8 @@
+# I went to NYC earlier this year and was blown away. I want to go back and show my girlfriend
+# Jordan the city. I want to find a one bedroom airbnb in either Manhattan or Brooklyn. I 
+# will build a model to tell us which neighbourhoods we should be looking into given critiria
+# such as price, reviews etc.
+
 ### Import Libraries
 library(dplyr)
 library(ggplot2)
@@ -50,6 +55,8 @@ names(data) <-  c("price", "borough", "neighbourhood", "latitude", "longitude", 
                  "rev_overall", "rev_accuracy", "rev_cleanliness", "rev_checkin","rev_communication",
                  "rev_location", "rev_value", "host_listings")
 
+### Subset the data for our problem
+
 ### Convert empty strings in cleaning_fee to $0
 data$cleaning_fee[data$cleaning_fee == ""] <- "$0.00"
 
@@ -86,6 +93,8 @@ map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level..,
   scale_fill_gradient(low = "dark blue", high = "orange") +
   scale_alpha(range = c(0.05, 0.3), guide = FALSE)
 
+# Subset the data to accomedate 2 people, 1 bed in eitherv Manhattan or Brooklyn
+
 # Analyse distrubutions and correlations 
 
 ### Create a new data set with just numerical factors
@@ -99,7 +108,3 @@ simple.lm <- lm(price ~ ., data = num.data)
 vif(simple.lm)
 
 # Feature Engineering
-
-# Predictive Modelling
-
-###
