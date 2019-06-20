@@ -34,14 +34,21 @@ blank.count <- sapply(raw.data, function(y) sum(length(which(y == ""))))
 blank.count[blank.count > 0]
 
 ### Remove useless and columns
-data <- subset(raw.data, select = c(host_is_superhost, neighbourhood_group_cleansed,
+data <- subset(raw.data, select = c(price, neighbourhood_group_cleansed,
                                     neighbourhood_cleansed, latitude, longitude, property_type,
-                                    room_type, accommodates, bathrooms, beds, bed_type, price,
+                                    room_type, accommodates, bathrooms, beds, bed_type, host_is_superhost,
                                     cleaning_fee, guests_included, extra_people, minimum_nights,
                                     number_of_reviews, review_scores_rating, review_scores_accuracy,
                                     review_scores_cleanliness, review_scores_checkin,
                                     review_scores_communication, review_scores_location,
                                     review_scores_value, calculated_host_listings_count))
+
+### Rename variables
+names(data) <-  c("price", "borough", "neighbourhood", "latitude", "longitude", "property_type",
+                 "room_type", "accommodates", "bathrooms", "beds", "bed_type", "superhost",
+                 "cleaning_fee", "guests", "extra_people", "minimum_nights","number_of_reviews",
+                 "rev_overall", "rev_accuracy", "rev_cleanliness", "rev_checkin","rev_communication",
+                 "rev_location", "rev_value", "host_listings")
 
 ### Convert empty strings in cleaning_fee to $0
 data$cleaning_fee[data$cleaning_fee == ""] <- "$0.00"
@@ -52,16 +59,16 @@ data$cleaning_fee <- as.numeric(gsub("\\$|,", "", data$cleaning_fee))
 data$extra_people <- as.numeric(gsub("\\$|,", "", data$extra_people))
 
 # Convert from chr to factor
-data$neighbourhood_cleansed <- as.factor(data$neighbourhood_cleansed)
-data$neighbourhood_group_cleansed <- as.factor(data$neighbourhood_group_cleansed)
+data$neighbourhood <- as.factor(data$neighbourhood)
+data$borough <- as.factor(data$borough)
 data$property_type <- as.factor(data$property_type)
 data$room_type <- as.factor(data$room_type)
 data$bed_type <- as.factor(data$bed_type)
 
 # Convert from chr to logical
-data$host_is_superhost[data$host_is_superhost == "t"] <- TRUE
-data$host_is_superhost[data$host_is_superhost == "f"] <- FALSE
-data$host_is_superhost <- as.logical(data$host_is_superhost)
+data$superhost[data$superhost == "t"] <- TRUE
+data$superhost[data$superhost == "f"] <- FALSE
+data$superhost <- as.logical(data$superhost)
 
 ### Clear any entries with NAs left
 data <- data[complete.cases(data)]
@@ -82,7 +89,7 @@ map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level..,
 # Analyse distrubutions and correlations 
 
 ### Create a new data set with just numerical factors
-num.data <- data[, c(-1, -2, -3, -6, -7, -11)]
+num.data <- data[, c(-2, -3, -6, -7, -11, -12)]
 
 ### Check correlations
 corrplot(cor(num.data), method = "square")
