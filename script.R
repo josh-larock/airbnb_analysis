@@ -18,6 +18,10 @@ library(doParallel)
 library(tmaptools)
 library(viridis)
 library(data.table)
+library(Quandl)
+
+### Import Quandl API
+Quandl.api_key(key = "fuMxtT531G2Q5HjqWngR")
 
 ### Import AirBnB file
 raw.data <- fread("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/data/listings.csv.gz", header = TRUE)
@@ -55,8 +59,6 @@ names(data) <-  c("price", "borough", "neighbourhood", "latitude", "longitude", 
                  "rev_overall", "rev_accuracy", "rev_cleanliness", "rev_checkin","rev_communication",
                  "rev_location", "rev_value", "host_listings")
 
-### Subset the data for our problem
-
 ### Convert empty strings in cleaning_fee to $0
 data$cleaning_fee[data$cleaning_fee == ""] <- "$0.00"
 
@@ -81,30 +83,41 @@ data$superhost <- as.logical(data$superhost)
 data <- data[complete.cases(data)]
 dim(data)
 
+### Subset the data for our problem
+data = data %>%
+  filter(borough == "Manhattan" & beds == 1 & room_type == "Entire home/apt" &
+           bed_type == "Real Bed" &  minimum_nights < 2 & accommodates > 1 & 
+           accommodates < 4)
+
+### Create a new variable that takes entire price
+data$extra_people[data$guests > 1] <- 0
+data <- data %>% 
+  mutate(trip.price = (price + cleaning_fee + extra_people)*3) %>%
+  select(-c(price, extra_people, guests, cleaning_fee, beds, minimum_nights, room_type,
+            bathrooms, accommodates)) %>%
+  filter(trip.price < 1500)
+
 # Spatial Visualization
 
 ### Get a map of Manhattan for visualizations
-map <- ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("New York City")$bbox))), zoom = 13))
+map <- ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 13))
 
 ### Density map
 map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level.., 
                                    alpha = ..level..), 
-                     size = 0.01, bins = 30,geom = "polygon", data = data) + 
+                     size = 0.01, bins = 30, geom = "polygon", data = data) + 
   scale_fill_gradient(low = "dark blue", high = "orange") +
   scale_alpha(range = c(0.05, 0.3), guide = FALSE)
-
-# Subset the data to accomedate 2 people, 1 bed in eitherv Manhattan or Brooklyn
 
 # Analyse distrubutions and correlations 
 
 ### Create a new data set with just numerical factors
-num.data <- data[, c(-2, -3, -6, -7, -11, -12)]
+num.data <- data[, -c(1, 2, 5, 6)]
 
-### Check correlations
+### Check correlations and distributions
 corrplot(cor(num.data), method = "square")
+chart.Correlation(num.data)
 
 ### Check VIF
-simple.lm <- lm(price ~ ., data = num.data)
+simple.lm <- lm(trip.price ~ ., data = num.data)
 vif(simple.lm)
-
-# Feature Engineering
