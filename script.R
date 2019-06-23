@@ -21,7 +21,7 @@ library(data.table)
 library(Quandl)
 
 ### Import Quandl API
-Quandl.api_key(key = "fuMxtT531G2Q5HjqWngR")
+Quandl.api_key(api_key = "fuMxtT531G2Q5HjqWngR")
 
 ### Import AirBnB file
 raw.data <- fread("http://data.insideairbnb.com/united-states/ny/new-york-city/2019-06-02/data/listings.csv.gz", header = TRUE)
@@ -90,9 +90,10 @@ data = data %>%
            accommodates < 4)
 
 ### Create a new variable that takes entire price
+cad.conversion <- Quandl("FRED/DEXCAUS")
 data$extra_people[data$guests > 1] <- 0
 data <- data %>% 
-  mutate(trip.price = (price + cleaning_fee + extra_people)*3) %>%
+  mutate(trip.price = (price + cleaning_fee + extra_people) *3*cad.conversion[1, 2]) %>%
   select(-c(price, extra_people, guests, cleaning_fee, beds, minimum_nights, room_type,
             bathrooms, accommodates)) %>%
   filter(trip.price < 1500)
