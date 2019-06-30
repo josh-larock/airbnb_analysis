@@ -5,12 +5,14 @@
 
 ### Import Libraries
 library(dplyr)
+library(plyr)
 library(ggplot2)
 library(ggmap)
 library(PerformanceAnalytics)
 library(ggthemes)
 library(corrplot)
 library(car)
+library(stats)
 library(psych)
 library(caret)
 library(caretEnsemble)
@@ -85,15 +87,14 @@ dim(data)
 
 ### Subset the data for our problem
 data = data %>%
-  filter(borough == "Manhattan" & beds == 1 & room_type == "Entire home/apt" &
-           bed_type == "Real Bed" &  minimum_nights < 2 & accommodates > 1 & 
+  filter(beds == 1 & room_type == "Entire home/apt" & minimum_nights < 2 & accommodates > 1 & 
            accommodates < 4)
 
-### Create a new variable that takes entire price
-cad.conversion <- Quandl("FRED/DEXCAUS")
+### Create a new variable: the entire price of the 3 night trip in canadian dollars
+cad.conversion <- Quandl("FRED/DEXCAUS", start_date = "2019-06-14")
 data$extra_people[data$guests > 1] <- 0
 data <- data %>% 
-  mutate(trip.price = (price + cleaning_fee + extra_people) *3*cad.conversion[1, 2]) %>%
+  mutate(trip.price = (price + cleaning_fee + extra_people)*3*cad.conversion[1, 2]) %>%
   select(-c(price, extra_people, guests, cleaning_fee, beds, minimum_nights, room_type,
             bathrooms, accommodates)) %>%
   filter(trip.price < 1500)
@@ -101,7 +102,7 @@ data <- data %>%
 # Spatial Visualization
 
 ### Get a map of Manhattan for visualizations
-map <- ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("Manhattan")$bbox))), zoom = 13))
+map <- ggmap(get_stamenmap(rbind(as.numeric(paste(geocode_OSM("New York City")$bbox))), zoom = 13))
 
 ### Density map
 map + stat_density2d(mapping = aes(x = longitude, y =latitude, fill = ..level.., 
@@ -122,3 +123,12 @@ chart.Correlation(num.data)
 ### Check VIF
 simple.lm <- lm(trip.price ~ ., data = num.data)
 vif(simple.lm)
+
+### Neighbourhood Analysis
+neighbourhood.price <- aggregate(data$trip.price ~ data$neighbourhood, FUN = mean)
+neighbourhood.count <- count(data$neighbourhood)
+neighbourhood.lat <- aggregate(data$latitude ~ data$neighbourhood, FUN = mean)
+neighbourhood.long <- aggregate(data$longitude ~ data$neighbourhood, FUN = mean)
+neighbourhood.data <- cbind(neighbourhood.price, neighbourhood.count[2],
+                            neighbourhood.long[2], neighbourhood.lat[2])
+names(neighbourhood.data) <- c("neighbourhood", "trip.price", "freq", "longitude", "latitude")
